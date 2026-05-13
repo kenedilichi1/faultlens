@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>PulseOps Live Feed</h1>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <script>
+      const socket = io('http://localhost:3000');
+
+      socket.on('log.created', (data) => {
+        console.log('NEW LOG:', data);
+      });
+
+      socket.on('incident.updated', (data) => {
+        console.log('INCIDENT UPDATED:', data);
+      });
+    </script>
+  </body>
+</html>
