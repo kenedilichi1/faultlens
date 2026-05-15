@@ -18,4 +18,8 @@ export class RealtimeGateway {
   emitIncidentUpdated(incident: any) {
     this.server.emit('incident.updated', incident);
   }
+
+  emitDashboardUpdated(data: any) {
+    this.server.emit('dashboard.updated', data);
+  }
 }
