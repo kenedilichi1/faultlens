@@ -28,6 +28,9 @@ model Log {
 
   metadata Json?
 
+  projectId String
+  project Project @relation(fields: [projectId],references: [id])
+
   incidentId String?
   incident   Incident? @relation(fields: [incidentId], references: [id])
 
@@ -37,6 +40,7 @@ model Log {
   @@index([serviceName])
   @@index([traceId])
   @@index([environment])
+
 }
 
 model Incident {
@@ -51,6 +55,10 @@ model Incident {
   occurrenceCount Int @default(1)
 
   logs Log[]
+
+  projectId String
+
+  project Project @relation(fields: [projectId],references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,6 +93,64 @@ model User {
   password  String
   name      String
 
+  memberships Membership[]
+
+  ownedOrganizations Organization[] @relation("OrganizationOwner")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+
+  name        String
+
+  ownerId     String
+  owner       User @relation("OrganizationOwner",fields: [ownerId],references: [id])
+
+  memberships Membership[]
+
+  projects    Project[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Membership {
+  id String @id @default(uuid())
+
+  role MembershipRole @default(MEMBER)
+
+  userId String
+  user   User @relation(fields: [userId],references: [id])
+
+  organizationId String
+  organization Organization @relation(fields: [organizationId],references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, organizationId])
+}
+
+model Project {
+  id String @id @default(uuid())
+
+  name String
+
+  organizationId String
+  organization Organization @relation( fields: [organizationId], references: [id])
+
+  logs Log[]
+
+  incidents Incident[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
 }

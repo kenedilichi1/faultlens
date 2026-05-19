@@ -11,6 +11,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 import configuration from './common/config/configuration';
 
 @Module({
@@ -38,6 +39,7 @@ import configuration from './common/config/configuration';
     DashboardModule,
     AuthModule,
     UsersModule,
+    OrganizationsModule,
   ],
 })
 export class AppModule {}
