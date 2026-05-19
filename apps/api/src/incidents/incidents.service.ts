@@ -49,6 +49,20 @@ export class IncidentsService {
     });
   }
 
+  async getIncidentLogs(id: string) {
+    return this.prisma.log.findMany({
+      where: {
+        incidentId: id,
+      },
+
+      orderBy: {
+        timestamp: 'desc',
+      },
+
+      take: 50,
+    });
+  }
+
   private mapSeverity(level: string): Severity {
     switch (level) {
       case 'ERROR':

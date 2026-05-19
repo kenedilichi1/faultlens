@@ -9,6 +9,8 @@ import { QueueModule } from './queue/queue.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import configuration from './common/config/configuration';
 
 @Module({
@@ -34,6 +36,8 @@ import configuration from './common/config/configuration';
     RealtimeModule,
     MetricsModule,
     DashboardModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

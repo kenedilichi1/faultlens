@@ -13,7 +13,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const appConfig = configService.get('server');
-  const port = appConfig?.port || 3000;
+  const port = appConfig?.port || 4000;
+
+  app.enableCors();
 
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalPipes(
@@ -33,6 +35,7 @@ async function bootstrap() {
     .setDescription(
       'AI-powered incident intelligence and observability platform',
     )
+    .addBearerAuth()
     .setVersion('1.0')
     .build();
 
