@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 
 import { IncidentsService } from './incidents.service';
 
@@ -9,5 +9,10 @@ export class IncidentsController {
   @Get()
   async findAll() {
     return this.incidentsService.findAll();
+  }
+
+  @Get(':id/logs')
+  async getIncidentLogs(@Param('id') id: string) {
+    return this.incidentsService.getIncidentLogs(id);
   }
 }

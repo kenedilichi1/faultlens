@@ -70,7 +70,7 @@ async function sendLog() {
   const log = generateLog();
 
   try {
-    await axios.post('http://localhost:3000/api/logs', log);
+    await axios.post('http://localhost:4000/api/logs', log);
 
     console.log(`[${log.level}] ${log.serviceName}: ${log.message}`);
   } catch (error) {

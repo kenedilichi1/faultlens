@@ -41,15 +41,25 @@ export class MetricsService {
   }
 
   async getServiceMetrics() {
-    const services = await this.prisma.log.groupBy({
-      by: ['serviceName', 'level'],
+    return this.prisma.log.groupBy({
+      by: ['serviceName'],
+
+      where: {
+        level: 'ERROR',
+      },
 
       _count: {
         id: true,
       },
-    });
 
-    return services;
+      orderBy: {
+        _count: {
+          id: 'desc',
+        },
+      },
+
+      take: 10,
+    });
   }
 
   async getTrendingIncidents() {
