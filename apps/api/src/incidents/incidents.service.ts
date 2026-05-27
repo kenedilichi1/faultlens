@@ -7,10 +7,19 @@ import { PrismaService } from '../prisma/prisma.service';
 export class IncidentsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async processIncident(fingerprint: string, message: string, level: string) {
+  async processIncident(
+    fingerprint: string,
+    message: string,
+    level: string,
+    projectId: string,
+    requestId?: string,
+  ) {
     const existingIncident = await this.prisma.incident.findUnique({
       where: {
-        fingerprint,
+        fingerprint_projectId: {
+          fingerprint,
+          projectId,
+        },
       },
     });
 
@@ -26,6 +35,7 @@ export class IncidentsService {
           occurrenceCount: {
             increment: 1,
           },
+          requestId,
         },
       });
     }
@@ -37,6 +47,8 @@ export class IncidentsService {
         severity,
         firstSeen: new Date(),
         lastSeen: new Date(),
+        projectId,
+        requestId,
       },
     });
   }

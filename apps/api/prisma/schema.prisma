@@ -28,8 +28,12 @@ model Log {
 
   metadata Json?
 
+  requestId String?
+
+  organizationId String
+
   projectId String
-  project Project @relation(fields: [projectId],references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
 
   incidentId String?
   incident   Incident? @relation(fields: [incidentId], references: [id])
@@ -40,14 +44,14 @@ model Log {
   @@index([serviceName])
   @@index([traceId])
   @@index([environment])
-
 }
 
 model Incident {
-  id          String   @id @default(uuid())
-  fingerprint String   @unique
-  title       String
-  severity    Severity
+  id          String @id @default(uuid())
+  fingerprint String
+
+  title    String
+  severity Severity
 
   firstSeen DateTime
   lastSeen  DateTime
@@ -58,11 +62,14 @@ model Incident {
 
   projectId String
 
-  project Project @relation(fields: [projectId],references: [id])
+  requestId String?
+
+  project Project @relation(fields: [projectId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([fingerprint, projectId])
   @@index([severity])
   @@index([lastSeen])
 }
@@ -87,11 +94,11 @@ enum Environment {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  email     String   @unique
-  password  String
-  name      String
+  email    String @unique
+  password String
+  name     String
 
   memberships Membership[]
 
@@ -102,19 +109,21 @@ model User {
 }
 
 model Organization {
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  name        String
+  name String
 
-  ownerId     String
-  owner       User @relation("OrganizationOwner",fields: [ownerId],references: [id])
+  ownerId String
+  owner   User   @relation("OrganizationOwner", fields: [ownerId], references: [id])
 
   memberships Membership[]
 
-  projects    Project[]
+  projects Project[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  anomalies Anomaly[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Membership {
@@ -123,10 +132,10 @@ model Membership {
   role MembershipRole @default(MEMBER)
 
   userId String
-  user   User @relation(fields: [userId],references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   organizationId String
-  organization Organization @relation(fields: [organizationId],references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
   createdAt DateTime @default(now())
 
@@ -139,11 +148,12 @@ model Project {
   name String
 
   organizationId String
-  organization Organization @relation( fields: [organizationId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
 
   logs Log[]
 
   incidents Incident[]
+  apiKeys   ApiKey[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -153,4 +163,54 @@ enum MembershipRole {
   OWNER
   ADMIN
   MEMBER
+}
+
+model ApiKey {
+  id String @id @default(uuid())
+
+  name String
+
+  key String @unique
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum AnomalyStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+model Anomaly {
+  id                 String   @id @default(cuid())
+
+  type               String
+  severity           String
+
+  message            String
+
+  currentValue       Float
+  previousValue      Float
+
+  increasePercentage Float
+
+  status AnomalyStatus @default(ACTIVE)
+
+  acknowledgedAt DateTime?
+
+  acknowledgedById String?
+  resolvedById String?
+
+  detectedAt         DateTime @default(now())
+
+  resolvedAt         DateTime?
+
+  organizationId     String
+
+  organization Organization @relation(fields: [organizationId],references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

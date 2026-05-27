@@ -1,7 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { MetricsService } from './metrics.service';
-import { LogVolumeDto } from './dto/log-volume.dto';
 
 @ApiTags('Metrics')
 @Controller('metrics')
@@ -9,26 +8,21 @@ export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
   @Get('overview')
-  async getOverview() {
-    return this.metricsService.getOverview();
-  }
+  async overview() {
+    const organizationId = 'REPLACE_WITH_REAL_ORG_ID';
 
-  @Get('services')
-  async getServiceMetrics() {
-    return this.metricsService.getServiceMetrics();
-  }
+    const [logVolume, incidentCount, errorRate] = await Promise.all([
+      this.metricsService.getLogVolume(organizationId),
 
-  @Get('incidents/trending')
-  async getTrendingIncidents() {
-    return this.metricsService.getTrendingIncidents();
-  }
+      this.metricsService.getIncidentFrequency(organizationId),
 
-  @Get('log-volume')
-  async getLogVolume(@Query() query: LogVolumeDto) {
-    return this.metricsService.getLogVolume(
-      query.interval || 'hour',
-      query.from,
-      query.to,
-    );
+      this.metricsService.getRecentErrorRate(organizationId),
+    ]);
+
+    return {
+      logVolume,
+      incidentCount,
+      errorRate,
+    };
   }
 }

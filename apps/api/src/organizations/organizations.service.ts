@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -25,5 +25,20 @@ export class OrganizationsService {
         memberships: true,
       },
     });
+  }
+
+  async verifyMembership(organizationId: string, userId: string) {
+    const membership = await this.prisma.membership.findFirst({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!membership) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    return membership;
   }
 }

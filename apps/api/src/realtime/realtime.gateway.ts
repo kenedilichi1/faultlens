@@ -22,4 +22,8 @@ export class RealtimeGateway {
   emitDashboardUpdated(data: any) {
     this.server.emit('dashboard.updated', data);
   }
+
+  emitAnomalyDetected(data: any) {
+    this.server.emit('anomaly.detected', data);
+  }
 }
