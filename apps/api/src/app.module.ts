@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from 'nestjs-pino';
@@ -12,7 +12,13 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { OrganizationsModule } from './organizations/organizations.module';
+import { ProjectsModule } from './projects/projects.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 import configuration from './common/config/configuration';
+import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
+import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
+import { AnomaliesService } from './anomalies/anomalies.service';
+import { AnomaliesModule } from './anomalies/anomalies.module';
 
 @Module({
   imports: [
@@ -40,6 +46,16 @@ import configuration from './common/config/configuration';
     AuthModule,
     UsersModule,
     OrganizationsModule,
+    ProjectsModule,
+    ApiKeysModule,
+    AnomaliesModule,
   ],
+  providers: [AnomaliesService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(RequestContextMiddleware, RequestLoggingMiddleware)
+      .forRoutes('*');
+  }
+}

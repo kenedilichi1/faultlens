@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MetricsService {
@@ -40,12 +39,13 @@ export class MetricsService {
     };
   }
 
-  async getServiceMetrics() {
+  async getServiceMetrics(organizationId) {
     return this.prisma.log.groupBy({
       by: ['serviceName'],
 
       where: {
         level: 'ERROR',
+        organizationId,
       },
 
       _count: {
@@ -62,8 +62,9 @@ export class MetricsService {
     });
   }
 
-  async getTrendingIncidents() {
+  async getTrendingIncidents(projectId: string) {
     return this.prisma.incident.findMany({
+      where: { projectId },
       orderBy: {
         occurrenceCount: 'desc',
       },
@@ -72,21 +73,59 @@ export class MetricsService {
     });
   }
 
-  async getLogVolume(
-    interval: 'minute' | 'hour' | 'day',
-    from?: string,
-    to?: string,
-  ) {
-    return this.prisma.$queryRaw<{ bucket: Date; count: number }[]>(Prisma.sql`
-  SELECT
-    DATE_TRUNC(${Prisma.raw(`'${interval}'`)}, "timestamp") as bucket,
-    COUNT(*)::int as count
-  FROM "Log"
-  WHERE "timestamp"
-    BETWEEN ${from ? new Date(from) : new Date(0)}
-    AND ${to ? new Date(to) : new Date()}
-  GROUP BY bucket
-  ORDER BY bucket ASC
-`);
+  async getLogVolume(organizationId: string) {
+    const logs = await this.prisma.log.groupBy({
+      by: ['level'],
+
+      where: {
+        organizationId,
+      },
+
+      _count: true,
+    });
+
+    return logs;
+  }
+
+  async getIncidentFrequency(organizationId: string) {
+    return this.prisma.incident.count({
+      where: {
+        project: {
+          organizationId,
+        },
+      },
+    });
+  }
+
+  async getRecentErrorRate(organizationId: string) {
+    const lastHour = new Date(Date.now() - 60 * 60 * 1000);
+
+    const totalLogs = await this.prisma.log.count({
+      where: {
+        organizationId,
+
+        createdAt: {
+          gte: lastHour,
+        },
+      },
+    });
+
+    const errorLogs = await this.prisma.log.count({
+      where: {
+        organizationId,
+
+        level: 'ERROR',
+
+        createdAt: {
+          gte: lastHour,
+        },
+      },
+    });
+
+    if (totalLogs === 0) {
+      return 0;
+    }
+
+    return Number(((errorLogs / totalLogs) * 100).toFixed(2));
   }
 }

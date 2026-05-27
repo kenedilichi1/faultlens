@@ -1,17 +1,29 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { DashboardService } from './dashboard.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 
-@ApiTags('Dashboard')
-@ApiBearerAuth()
+import { DashboardService } from './dashboard.service';
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+
+import { type AuthUser } from '../auth/types/auth-user.type';
+
+@Controller('organizations/:organizationId/dashboard')
 @UseGuards(JwtAuthGuard)
-@Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('summary')
-  async getSummary() {
-    return this.dashboardService.getSummary();
+  getSummary(
+    @Param('organizationId')
+    organizationId: string,
+
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    return this.dashboardService.getOrganizationSummary(
+      organizationId,
+      user.userId,
+    );
   }
 }
